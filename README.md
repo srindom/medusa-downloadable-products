@@ -43,7 +43,7 @@ The project has a few extensions:
 - A UI Route to show a list of all `ProductMedia` in the store.
 - A Dynamic UI Route to show the details of a specific `ProductMedia`.
 
-You can find the extensions in [`src/admin`[(https://github.com/srindom/medusa-downloadable-products/tree/main/src/admin)
+You can find the extensions in [`src/admin`](https://github.com/srindom/medusa-downloadable-products/tree/main/src/admin)
 
 ### Subscriber
 
@@ -66,6 +66,9 @@ There are two storefront endpoints in the project:
    - For example, on a PDP I might want to do `GET /store/product-media?variant_id=[selected id]` to fetch the relevant file and display it to the customer.
 
 2. `GET /store/:token` - this endpoint checks if the passed token is valid and, if so, gives the customer access to the downloadable file associated with the product they bought. The token should be the one created in the `order.placed` subscriber. Right now the endpoint redirects the user to the file url - a better solution would maybe proxy the file through Medusa or signed URL with the storage provider.
+
+You can find the code for the Storefont API in [`src/api/routes/store/product-media`](https://github.com/srindom/medusa-downloadable-products/tree/main/src/api/routes/store/product-media)
+
 
 ## TODOs
 
