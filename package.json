@@ -1,11 +1,10 @@
 {
-  "name": "medusa-starter-default",
+  "name": "media-products",
   "version": "0.0.1",
-  "description": "A starter for Medusa projects.",
+  "description": "A Medusa project with customizations for downloadable products.",
   "author": "Sebastian Rindom <skrindom@gmail.com>",
   "license": "MIT",
   "keywords": [
-    "sqlite",
     "postgres",
     "typescript",
     "ecommerce",

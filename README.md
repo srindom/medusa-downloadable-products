@@ -1,70 +1,77 @@
-<p align="center">
-  <a href="https://www.medusajs.com">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://user-images.githubusercontent.com/59018053/229103275-b5e482bb-4601-46e6-8142-244f531cebdb.svg">
-    <source media="(prefers-color-scheme: light)" srcset="https://user-images.githubusercontent.com/59018053/229103726-e5b529a3-9b3f-4970-8a1f-c6af37f087bf.svg">
-    <img alt="Medusa logo" src="https://user-images.githubusercontent.com/59018053/229103726-e5b529a3-9b3f-4970-8a1f-c6af37f087bf.svg">
-    </picture>
-  </a>
-</p>
-<h1 align="center">
-  Medusa
-</h1>
+# Medusa Downloadable Products
 
-<h4 align="center">
-  <a href="https://docs.medusajs.com">Documentation</a> |
-  <a href="https://www.medusajs.com">Website</a>
-</h4>
+## Getting started
 
-<p align="center">
-  Building blocks for digital commerce
-</p>
-<p align="center">
-  <a href="https://github.com/medusajs/medusa/blob/master/CONTRIBUTING.md">
-    <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat" alt="PRs welcome!" />
-  </a>
-    <a href="https://www.producthunt.com/posts/medusa"><img src="https://img.shields.io/badge/Product%20Hunt-%231%20Product%20of%20the%20Day-%23DA552E" alt="Product Hunt"></a>
-  <a href="https://discord.gg/xpCwq3Kfn8">
-    <img src="https://img.shields.io/badge/chat-on%20discord-7289DA.svg" alt="Discord Chat" />
-  </a>
-  <a href="https://twitter.com/intent/follow?screen_name=medusajs">
-    <img src="https://img.shields.io/twitter/follow/medusajs.svg?label=Follow%20@medusajs" alt="Follow @medusajs" />
-  </a>
-</p>
+**Note:** Make sure you have a Postgres DB set up and running and a `.env` file created with the relevant variables specified in `.env.template`.
 
-## Compatibility
+```
+yarn
+yarn build
+npx @medusajs/medusa-cli@latest migrations run
+yarn seed
+npx @medusajs/medusa-cli user -e [your email] -p [a secret password]
+yarn dev
+```
 
-This starter is compatible with versions >= 1.8.0 of `@medusajs/medusa`. 
+The admin dashboard will open and you can log in. To see the product media widget, create a new product with type "Media" and navigate to the product details page.
 
-## Getting Started
+## How it works?
 
-Visit the [Quickstart Guide](https://docs.medusajs.com/create-medusa-app) to set up a server.
+### High-level overview
 
-Visit the [Docs](https://docs.medusajs.com/development/backend/prepare-environment) to learn more about our system requirements.
+The customizations in this project allow the following:
 
-## What is Medusa
+- Merchants can upload a file and associate it with a product variant.
+- Merchants can specify if the file<->variant association should be a "preview" or a "main" file.
+- Merchants can manage files from the admin dashboard on individual product pages and view all files from a list view.
+- Customers can view previews through a custom storefront API.
+- When customers place an order a subscriber checks if line items contain a downloadable product and creates a unique download token that can be sent to the customer's email using a notification plugin.
 
-Medusa is a set of commerce modules and tools that allow you to build rich, reliable, and performant commerce applications without reinventing core commerce logic. The modules can be customized and used to build advanced ecommerce stores, marketplaces, or any product that needs foundational commerce primitives. All modules are open-source and freely available on npm.
+### Data model
 
-Learn more about [Medusa’s architecture](https://docs.medusajs.com/development/fundamentals/architecture-overview) and [commerce modules](https://docs.medusajs.com/modules/overview) in the Docs.
+Two entities have been added to the project: `ProductMedia` and `ProductMediaVariant`. You can view them in [`src/model`](https://github.com/srindom/medusa-downloadable-products/tree/main/src/models).
 
-## Roadmap, Upgrades & Plugins
+- `ProductMedia` holds the media details about a given download. This includes things like the url where the file can be accessed and the type of the file.
+- `ProductMediaVariant` holds the assocation between `ProductMedia` and `ProductVariant`s including the type of association.
 
-You can view the planned, started and completed features in the [Roadmap discussion](https://github.com/medusajs/medusa/discussions/categories/roadmap).
+### Admin Extensions
 
-Follow the [Upgrade Guides](https://docs.medusajs.com/upgrade-guides/) to keep your Medusa project up-to-date.
+The project has a few extensions:
 
-Check out all [available Medusa plugins](https://medusajs.com/plugins/).
+- A Widget injected on `product.details.after` that is conditionally shown when the product type is "Media".
+  - The widget enables merchants to upload a file and associate it with one of the product's variants.
+- A UI Route to show a list of all `ProductMedia` in the store.
+- A Dynamic UI Route to show the details of a specific `ProductMedia`.
 
-## Community & Contributions
+You can find the extensions in [`src/admin`[(https://github.com/srindom/medusa-downloadable-products/tree/main/src/admin)
 
-The community and core team are available in [GitHub Discussions](https://github.com/medusajs/medusa/discussions), where you can ask for support, discuss roadmap, and share ideas.
+### Subscriber
 
-Join our [Discord server](https://discord.com/invite/medusajs) to meet other community members.
+A subscriber listens to `order.placed` and checks whether one or more of the order's line items contains a variant with an associated file. For each line item it finds it creates a download token and emits an event called `product-media.send-media` which a notification provider can be configured to send messages out to.
 
-## Other channels
+You can view the subscriber in [`src/subscribers`](https://github.com/srindom/medusa-downloadable-products/tree/main/src/subscribers)
 
-- [GitHub Issues](https://github.com/medusajs/medusa/issues)
-- [Twitter](https://twitter.com/medusajs)
-- [LinkedIn](https://www.linkedin.com/company/medusajs)
-- [Medusa Blog](https://medusajs.com/blog/)
+### Admin APIs
+
+There are Admin APIs to manage ProductMedia and its associations with variants.
+
+You can find the code for the Admin API in [`src/api/routes/admin/product-media`](https://github.com/srindom/medusa-downloadable-products/tree/main/src/api/routes/admin/product-media)
+
+### Storefront APIs
+
+There are two storefront endpoints in the project:
+
+1. `GET /store/product-media` - this endoint can be used to list product media previews in a storefront.
+
+   - For example, on a PDP I might want to do `GET /store/product-media?variant_id=[selected id]` to fetch the relevant file and display it to the customer.
+
+2. `GET /store/:token` - this endpoint checks if the passed token is valid and, if so, gives the customer access to the downloadable file associated with the product they bought. The token should be the one created in the `order.placed` subscriber. Right now the endpoint redirects the user to the file url - a better solution would maybe proxy the file through Medusa or signed URL with the storage provider.
+
+## TODOs
+
+This was done in a couple of hours and would need some more work to be production-ready. A few immediate ideas include:
+
+- Being able to remove associations to variants from admin. (Both in the widget and in UI routes)
+- Being able to delete product media from admin. The API is implemented but UI support is missing.
+- Adding signed urls to file downloads - current approach redirects to a public file.
+- Adding a view in `order.details.after` to see a list of line items with downloadable products in an order.

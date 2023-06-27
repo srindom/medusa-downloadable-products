@@ -93,7 +93,7 @@ export default class MySubscriber {
           // A subscriber should listen to this event and send the
           // media to the customer
           return this.eventBusService.emit("product-media.send-media", {
-            media: m.media,
+            mediaId: m.media.id,
             order_id: order.id,
             display_id: order.display_id,
             email: order.email,
